@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شركة الإنجاز المعتمد للاستقدام | مولّد السير الذاتية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --navy:#1a2b4a;
+  --navy-light:#2d4368;
+  --gold:#b8945f;
+  --line:#1a2b4a;
+  --bg:#eef1f6;
+  --panel:#ffffff;
+  --muted:#6b7689;
+  --field-bg:#f7f9fc;
+  --field-border:#d3dae6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Tajawal',sans-serif;
+  background:var(--bg);
+  color:#1f2530;
+  line-height:1.5;
+}
+.app{
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:0;
+  min-height:100vh;
+}
+
+/* ============ FORM SIDEBAR ============ */
+.sidebar{
+  background:var(--panel);
+  border-left:1px solid #e1e6ef;
+  padding:0;
+  overflow-y:auto;
+  height:100vh;
+  position:sticky;
+  top:0;
+}
+.brand{
+  background:linear-gradient(135deg,var(--navy),var(--navy-light));
+  color:#fff;
+  padding:22px 24px;
+  position:sticky;
+  top:0;
+  z-index:5;
+  box-shadow:0 2px 12px rgba(26,43,74,.18);
+}
+.brand h1{font-size:18px;font-weight:800;letter-spacing:.2px}
+.brand .en{font-family:'Roboto';font-size:11px;opacity:.75;letter-spacing:1px;margin-top:3px}
+.brand .badge{
+  display:inline-block;margin-top:10px;font-size:11px;
+  background:rgba(184,148,95,.25);border:1px solid var(--gold);
+  color:#f0e2cc;padding:3px 12px;border-radius:20px;
+}
+.form-body{padding:18px 22px 40px}
+
+.section{margin-bottom:22px}
+.section-title{
+  font-size:13px;font-weight:800;color:var(--navy);
+  text-transform:uppercase;letter-spacing:.6px;
+  padding-bottom:8px;margin-bottom:14px;
+  border-bottom:2px solid var(--gold);
+  display:flex;align-items:center;gap:8px;
+}
+.section-title span.num{
+  background:var(--navy);color:#fff;width:22px;height:22px;
+  border-radius:50%;display:inline-flex;align-items:center;
+  justify-content:center;font-size:11px;flex-shrink:0;
+}
+.field{margin-bottom:12px}
+.field label{
+  display:block;font-size:12px;font-weight:500;
+  color:var(--muted);margin-bottom:5px;
+}
+.field input,.field select{
+  width:100%;padding:9px 11px;font-size:13px;
+  font-family:'Tajawal';border:1px solid var(--field-border);
+  border-radius:8px;background:var(--field-bg);
+  transition:.2s;color:#1f2530;
+}
+.field input:focus,.field select:focus{
+  outline:none;border-color:var(--navy);
+  background:#fff;box-shadow:0 0 0 3px rgba(26,43,74,.08);
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.check{
+  display:flex;align-items:center;gap:8px;
+  background:var(--field-bg);border:1px solid var(--field-border);
+  padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12px;
+  transition:.2s;
+}
+.check:hover{border-color:var(--navy)}
+.check input{width:16px;height:16px;accent-color:var(--navy);cursor:pointer}
+
+.lang-rate{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  align-items:center;margin-bottom:10px;
+  background:var(--field-bg);padding:8px 11px;border-radius:8px;
+  border:1px solid var(--field-border);
+}
+.lang-rate .lname{font-size:12px;font-weight:700;color:var(--navy)}
+.lang-rate .ename{font-family:'Roboto';font-size:10px;color:var(--muted)}
+.lang-rate select{width:120px;padding:6px 8px;font-size:12px;border-radius:6px;border:1px solid var(--field-border)}
+
+.upload{
+  border:2px dashed var(--field-border);border-radius:10px;
+  padding:16px;text-align:center;cursor:pointer;
+  background:var(--field-bg);transition:.2s;
+}
+.upload:hover{border-color:var(--navy);background:#fff}
+.upload svg{width:28px;height:28px;color:var(--navy);margin-bottom:6px}
+.upload p{font-size:12px;color:var(--muted)}
+.upload input{display:none}
+.upload.has-file{border-color:var(--gold);border-style:solid;background:#fdfaf4}
+.upload.has-file p{color:var(--navy);font-weight:700}
+
+.export-btn{
+  width:100%;padding:15px;background:linear-gradient(135deg,var(--navy),var(--navy-light));
+  color:#fff;border:none;border-radius:10px;font-family:'Tajawal';
+  font-size:15px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 6px 18px rgba(26,43,74,.3);transition:.2s;
+  margin-top:8px;
+}
+.export-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,43,74,.4)}
+.export-btn:active{transform:translateY(0)}
+.export-btn:disabled{opacity:.6;cursor:wait}
+.export-btn svg{width:20px;height:20px}
+
+/* ============ PREVIEW AREA ============ */
+.preview-area{
+  padding:34px;display:flex;justify-content:center;
+  align-items:flex-start;overflow:auto;height:100vh;
+}
+
+/* A4 PAGE */
+.a4{
+  width:210mm;min-height:297mm;background:#fff;
+  box-shadow:0 8px 40px rgba(0,0,0,.18);
+  position:relative;padding:0;
+  font-size:10.5px;color:#1f2530;
+}
+.cv-header{
+  background:var(--navy);color:#fff;padding:14px 18px;
+  display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;
+  border-bottom:4px solid var(--gold);
+}
+.cv-header .co-ar{font-size:19px;font-weight:800;line-height:1.2}
+.cv-header .co-en{font-family:'Roboto';font-size:11px;letter-spacing:1.2px;opacity:.85;margin-top:3px;direction:ltr;text-align:right}
+.cv-header .logo-circle{
+  width:58px;height:58px;border-radius:50%;
+  border:2px solid var(--gold);display:flex;align-items:center;
+  justify-content:center;font-size:22px;font-weight:800;
+  color:var(--gold);background:rgba(255,255,255,.06);flex-shrink:0;
+}
+.doc-title{
+  background:var(--gold);color:var(--navy);text-align:center;
+  padding:7px;font-weight:800;font-size:13px;letter-spacing:.5px;
+  direction:ltr;
+}
+
+.cv-body{padding:14px 16px 20px}
+
+/* top row: position info + photo */
+.top-row{display:grid;grid-template-columns:1fr 130px;gap:14px;margin-bottom:14px}
+.photo-box{
+  width:130px;height:160px;border:2px solid var(--navy);
+  border-radius:4px;overflow:hidden;background:var(--field-bg);
+  display:flex;align-items:center;justify-content:center;
+}
+.photo-box img{width:100%;height:100%;object-fit:cover}
+.photo-box .ph-placeholder{font-size:10px;color:var(--muted);text-align:center;padding:6px;font-family:'Roboto'}
+
+table.cv-table{width:100%;border-collapse:collapse;margin-bottom:0}
+table.cv-table td,table.cv-table th{
+  border:1px solid var(--line);padding:5px 8px;vertical-align:middle;
+}
+.cv-table .lbl{background:#eef1f6;font-weight:700;color:var(--navy);width:34%}
+.cv-table .lbl .en{display:block;font-family:'Roboto';font-size:8px;color:var(--muted);font-weight:400}
+.cv-table .val{background:#fff;font-weight:500;min-height:18px}
+.cv-table .val:empty::after{content:"\00a0"}
+
+.block-title{
+  background:var(--navy);color:#fff;padding:5px 10px;font-weight:800;
+  font-size:11px;margin:12px 0 0;display:flex;justify-content:space-between;
+  align-items:center;
+}
+.block-title .en{font-family:'Roboto';font-size:9px;opacity:.8;font-weight:400}
+
+/* position bar */
+.position-grid{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--line);border-top:none}
+.position-grid .pcell{border-right:1px solid var(--line);padding:6px 8px;text-align:center}
+.position-grid .pcell:last-child{border-right:none}
+.position-grid .pcell .pl{font-size:8.5px;color:var(--navy);font-weight:700}
+.position-grid .pcell .pl .en{font-family:'Roboto';font-size:7.5px;color:var(--muted);display:block}
+.position-grid .pcell .pv{font-size:12px;font-weight:700;margin-top:3px;color:#1f2530}
+
+.exp-checks{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid var(--line);border-top:none}
+.exp-checks .ec{border-right:1px solid var(--line);padding:7px 6px;text-align:center;font-size:9.5px}
+.exp-checks .ec:last-child{border-right:none}
+.exp-checks .ec .mark{
+  display:inline-block;width:15px;height:15px;border:1.5px solid var(--navy);
+  border-radius:3px;margin-bottom:4px;line-height:13px;font-weight:800;
+  color:#fff;background:#fff;font-size:11px;
+}
+.exp-checks .ec.on .mark{background:var(--navy)}
+.exp-checks .ec .lab{display:block;font-weight:700;color:var(--navy)}
+.exp-checks .ec .en{font-family:'Roboto';font-size:7.5px;color:var(--muted)}
+
+.lang-table{width:100%;border-collapse:collapse;border-top:none}
+.lang-table td,.lang-table th{border:1px solid var(--line);padding:5px 8px;text-align:center;font-size:10px}
+.lang-table th{background:#eef1f6;color:var(--navy);font-weight:700;font-size:9px}
+.lang-table .lname{font-weight:700;color:var(--navy);text-align:right}
+.lang-table .dot{
+  display:inline-block;width:13px;height:13px;border-radius:50%;
+  border:1.5px solid var(--navy);
+}
+.lang-table .dot.on{background:var(--navy)}
+
+.exp-text{border:1px solid var(--line);border-top:none;padding:7px 10px;min-height:32px;font-size:10px}
+
+.passport-photo-box{
+  width:100%;border:2px solid var(--navy);border-radius:4px;
+  margin-top:6px;overflow:hidden;background:var(--field-bg);
+  min-height:90px;display:flex;align-items:center;justify-content:center;
+}
+.passport-photo-box img{width:100%;display:block;object-fit:contain}
+.passport-photo-box .pp-placeholder{font-size:10px;color:var(--muted);padding:24px;font-family:'Roboto'}
+
+.cv-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--navy);color:#fff;padding:6px 16px;
+  font-size:8.5px;display:flex;justify-content:space-between;
+  font-family:'Roboto';letter-spacing:.5px;
+}
+
+/* ============ RESPONSIVE ============ */
+/* The A4 page keeps its real mm size for accurate PDF export, but on small
+   screens we scale it down with a CSS variable so it always fits the viewport
+   width. The wrapper reserves the correct scaled height to avoid clipping. */
+.a4-wrap{
+  width:210mm;
+  display:flex;justify-content:center;
+}
+
+/* Large desktops: roomy two-column layout */
+@media(min-width:1101px){
+  .preview-area{align-items:flex-start}
+}
+
+/* Tablets / small laptops: stack, form first then preview */
+@media(max-width:1100px){
+  .app{grid-template-columns:1fr}
+  .sidebar{height:auto;position:relative;border-left:none;border-bottom:1px solid #e1e6ef;overflow:visible}
+  .brand{position:relative}
+  .preview-area{height:auto;padding:20px;overflow:visible;display:block}
+  .a4-wrap{width:100%;overflow:hidden}
+  .a4{
+    transform:scale(var(--scale,.85));
+    transform-origin:top center;
+    /* compensate the empty space left by scaling so nothing overlaps */
+    margin-bottom:calc((var(--scale,.85) - 1) * 297mm);
+  }
+}
+
+/* Phones */
+@media(max-width:760px){
+  .form-body{padding:16px 16px 36px}
+  .grid2{grid-template-columns:1fr}
+  .checks{grid-template-columns:1fr}
+  .a4{transform:scale(var(--scale,.55));transform-origin:top center;
+      margin-bottom:calc((var(--scale,.55) - 1) * 297mm);}
+}
+@media(max-width:420px){
+  .brand h1{font-size:16px}
+  .lang-rate select{width:100px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR FORM ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>شركة الإنجاز المعتمد للاستقدام</h1>
+      <div class="en">AL ENJAZ AL MOTAMAD FOR RECRUITMENT</div>
+      <span class="badge">مولّد السير الذاتية للعمالة المنزلية</span>
+    </div>
+
+    <div class="form-body">
+
+      <!-- 1. Basic -->
+      <div class="section">
+        <div class="section-title"><span class="num">1</span> بيانات الوظيفة · Job Info</div>
+        <div class="field">
+          <label>المهنة · Position Applied For</label>
+          <input type="text" data-bind="position" placeholder="House Maid">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>الراتب الشهري · Monthly Salary</label>
+            <input type="text" data-bind="salary" placeholder="1000 SAR">
+          </div>
+          <div class="field">
+            <label>مدة العقد · Contract Period</label>
+            <input type="text" data-bind="contract" placeholder="2 Years">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Details -->
+      <div class="section">
+        <div class="section-title"><span class="num">2</span> تفاصيل الطلب · Details</div>
+        <div class="field">
+          <label>الاسم الكامل · Full Name</label>
+          <input type="text" data-bind="fullname" placeholder="Full Name">
+        </div>
+        <div class="grid2">
+          <div class="field"><label>الجنسية · Nationality</label><input type="text" data-bind="nationality"></div>
+          <div class="field"><label>الديانة · Religion</label><input type="text" data-bind="religion"></div>
+          <div class="field"><label>تاريخ الميلاد · Date of Birth</label><input type="text" data-bind="dob" placeholder="DD/MM/YYYY"></div>
+          <div class="field"><label>العمر · Age</label><input type="text" data-bind="age"></div>
+          <div class="field"><label>مكان الميلاد · Place of Birth</label><input type="text" data-bind="pob"></div>
+          <div class="field"><label>مكان السكن · Address</label><input type="text" data-bind="address"></div>
+          <div class="field">
+            <label>الحالة الاجتماعية · Marital Status</label>
+            <select data-bind="marital">
+              <option value=""></option>
+              <option>Single · أعزب</option>
+              <option>Married · متزوج</option>
+              <option>Widowed · أرمل</option>
+              <option>Divorced · مطلق</option>
+            </select>
+          </div>
+          <div class="field"><label>عدد الأطفال · No. of Children</label><input type="text" data-bind="children"></div>
+          <div class="field"><label>الوزن · Weight (KG)</label><input type="text" data-bind="weight"></div>
+          <div class="field"><label>الطول · Height</label><input type="text" data-bind="height"></div>
+          <div class="field"><label>لون البشرة · Complexion</label><input type="text" data-bind="complexion"></div>
+        </div>
+      </div>
+
+      <!-- 3. Skills -->
+      <div class="section">
+        <div class="section-title"><span class="num">3</span> الخبرات والمهارات · Skills</div>
+        <div class="field">
+          <label>الخبرة السابقة خارج البلد · Work Experience Abroad</label>
+          <input type="text" data-bind="workexp" placeholder="e.g. 2 years in Saudi Arabia">
+        </div>
+        <div class="field">
+          <label>خبرات المنزل · Household Experience</label>
+          <div class="checks">
+            <label class="check"><input type="checkbox" data-check="babysit"> عناية بالأطفال · Baby Sitting</label>
+            <label class="check"><input type="checkbox" data-check="cleaning"> تنظيف · Cleaning</label>
+            <label class="check"><input type="checkbox" data-check="cooking"> طبخ · Cooking</label>
+            <label class="check"><input type="checkbox" data-check="washing"> غسيل · Washing</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>لغة التحدث · Language Spoken</label>
+          <div class="lang-rate">
+            <div><div class="lname">العربية</div><div class="ename">Arabic</div></div>
+            <select data-lang="arabic">
+              <option value="">—</option>
+              <option value="excellent">ممتاز · Excellent</option>
+              <option value="good">جيد · Good</option>
+              <option value="poor">ضعيف · Poor</option>
+            </select>
+          </div>
+          <div class="lang-rate">
+            <div><div class="lname">الإنجليزية</div><div class="ename">English</div></div>
+            <select data-lang="english">
+              <option value="">—</option>
+              <option value="excellent">ممتاز · Excellent</option>
+              <option value="good">جيد · Good</option>
+              <option value="poor">ضعيف · Poor</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Passport -->
+      <div class="section">
+        <div class="section-title"><span class="num">4</span> بيانات الجواز · Passport</div>
+        <div class="grid2">
+          <div class="field"><label>رقم الجواز · Passport No.</label><input type="text" data-bind="passno"></div>
+          <div class="field"><label>مكان الإصدار · Place Issued</label><input type="text" data-bind="passplace"></div>
+          <div class="field"><label>تاريخ الإصدار · Date of Issue</label><input type="text" data-bind="passissue" placeholder="DD/MM/YYYY"></div>
+          <div class="field"><label>تاريخ الانتهاء · Date of Expiration</label><input type="text" data-bind="passexp" placeholder="DD/MM/YYYY"></div>
+        </div>
+      </div>
+
+      <!-- 5. Photos -->
+      <div class="section">
+        <div class="section-title"><span class="num">5</span> الصور · Photos</div>
+        <div class="field">
+          <label>الصورة الشخصية · Personal Photo</label>
+          <label class="upload" id="up-personal">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            <p>اضغط لرفع الصورة الشخصية</p>
+            <input type="file" accept="image/*" id="file-personal">
+          </label>
+        </div>
+        <div class="field">
+          <label>صورة الجواز · Passport Copy</label>
+          <label class="upload" id="up-passport">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            <p>اضغط لرفع صورة الجواز</p>
+            <input type="file" accept="image/*" id="file-passport">
+          </label>
+        </div>
+      </div>
+
+      <button class="export-btn" id="exportBtn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        حفظ وتصدير PDF
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ LIVE PREVIEW (A4) ============ -->
+  <main class="preview-area">
+   <div class="a4-wrap">
+    <div class="a4" id="cvPage">
+
+      <div class="cv-header">
+        <div>
+          <div class="co-ar">شركة الإنجاز المعتمد للاستقدام</div>
+          <div class="co-en">AL ENJAZ AL MOTAMAD FOR RECRUITMENT</div>
+        </div>
+        <div class="logo-circle">AE</div>
+      </div>
+      <div class="doc-title">HOUSE MAID — APPLICATION FOR EMPLOYMENT</div>
+
+      <div class="cv-body">
+
+        <!-- position bar + photo -->
+        <div class="top-row">
+          <div>
+            <div class="block-title">الوظيفة المطلوبة <span class="en">Position Applied For</span></div>
+            <div class="position-grid">
+              <div class="pcell">
+                <div class="pl">المهنة<span class="en">Position</span></div>
+                <div class="pv" id="o-position">—</div>
+              </div>
+              <div class="pcell">
+                <div class="pl">الراتب<span class="en">Monthly Salary</span></div>
+                <div class="pv" id="o-salary">—</div>
+              </div>
+              <div class="pcell">
+                <div class="pl">مدة العقد<span class="en">Contract</span></div>
+                <div class="pv" id="o-contract">—</div>
+              </div>
+            </div>
+
+            <div class="block-title" style="margin-top:12px">المعلومات الشخصية <span class="en">Personal Details</span></div>
+            <table class="cv-table">
+              <tr><td class="lbl">الاسم الكامل<span class="en">Full Name</span></td><td class="val" id="o-fullname"></td></tr>
+              <tr>
+                <td class="lbl">الجنسية<span class="en">Nationality</span></td><td class="val" id="o-nationality"></td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <div class="photo-box" id="photoBox">
+              <span class="ph-placeholder">Personal<br>Photo<br>الصورة الشخصية</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- full details table -->
+        <table class="cv-table">
+          <tr>
+            <td class="lbl">الديانة<span class="en">Religion</span></td><td class="val" id="o-religion"></td>
+            <td class="lbl">الحالة الاجتماعية<span class="en">Marital Status</span></td><td class="val" id="o-marital"></td>
+          </tr>
+          <tr>
+            <td class="lbl">تاريخ الميلاد<span class="en">Date of Birth</span></td><td class="val" id="o-dob"></td>
+            <td class="lbl">العمر<span class="en">Age</span></td><td class="val" id="o-age"></td>
+          </tr>
+          <tr>
+            <td class="lbl">مكان الميلاد<span class="en">Place of Birth</span></td><td class="val" id="o-pob"></td>
+            <td class="lbl">عدد الأطفال<span class="en">No. of Children</span></td><td class="val" id="o-children"></td>
+          </tr>
+          <tr>
+            <td class="lbl">مكان السكن<span class="en">Address</span></td><td class="val" id="o-address"></td>
+            <td class="lbl">لون البشرة<span class="en">Complexion</span></td><td class="val" id="o-complexion"></td>
+          </tr>
+          <tr>
+            <td class="lbl">الوزن<span class="en">Weight (KG)</span></td><td class="val" id="o-weight"></td>
+            <td class="lbl">الطول<span class="en">Height (CM)</span></td><td class="val" id="o-height"></td>
+          </tr>
+        </table>
+
+        <!-- household experience -->
+        <div class="block-title">خبرات المنزل <span class="en">Household Experience</span></div>
+        <div class="exp-checks">
+          <div class="ec" id="ec-babysit"><span class="mark">✓</span><span class="lab">عناية بالأطفال</span><span class="en">Baby Sitting</span></div>
+          <div class="ec" id="ec-cleaning"><span class="mark">✓</span><span class="lab">تنظيف</span><span class="en">Cleaning</span></div>
+          <div class="ec" id="ec-cooking"><span class="mark">✓</span><span class="lab">طبخ</span><span class="en">Cooking</span></div>
+          <div class="ec" id="ec-washing"><span class="mark">✓</span><span class="lab">غسيل</span><span class="en">Washing</span></div>
+        </div>
+
+        <!-- languages -->
+        <div class="block-title">اللغات <span class="en">Language Spoken</span></div>
+        <table class="lang-table">
+          <tr>
+            <th style="width:34%">اللغة · Language</th>
+            <th>ممتاز · Excellent</th>
+            <th>جيد · Good</th>
+            <th>ضعيف · Poor</th>
+          </tr>
+          <tr>
+            <td class="lname">العربية · Arabic</td>
+            <td><span class="dot" id="ar-excellent"></span></td>
+            <td><span class="dot" id="ar-good"></span></td>
+            <td><span class="dot" id="ar-poor"></span></td>
+          </tr>
+          <tr>
+            <td class="lname">الإنجليزية · English</td>
+            <td><span class="dot" id="en-excellent"></span></td>
+            <td><span class="dot" id="en-good"></span></td>
+            <td><span class="dot" id="en-poor"></span></td>
+          </tr>
+        </table>
+
+        <!-- work experience abroad -->
+        <div class="block-title">الخبرة السابقة خارج البلد <span class="en">Work Experience Abroad</span></div>
+        <div class="exp-text" id="o-workexp"></div>
+
+        <!-- passport -->
+        <div class="block-title">بيانات الجواز <span class="en">Passport Details</span></div>
+        <table class="cv-table">
+          <tr>
+            <td class="lbl">رقم الجواز<span class="en">Passport No.</span></td><td class="val" id="o-passno"></td>
+            <td class="lbl">مكان الإصدار<span class="en">Place Issued</span></td><td class="val" id="o-passplace"></td>
+          </tr>
+          <tr>
+            <td class="lbl">تاريخ الإصدار<span class="en">Date of Issue</span></td><td class="val" id="o-passissue"></td>
+            <td class="lbl">تاريخ الانتهاء<span class="en">Date of Expiration</span></td><td class="val" id="o-passexp"></td>
+          </tr>
+        </table>
+
+        <!-- passport photo -->
+        <div class="block-title">صورة الجواز <span class="en">Passport Copy</span></div>
+        <div class="passport-photo-box" id="passportBox">
+          <span class="pp-placeholder">Passport Copy · صورة الجواز</span>
+        </div>
+
+      </div>
+
+      <div class="cv-footer">
+        <span>AL ENJAZ AL MOTAMAD FOR RECRUITMENT</span>
+        <span>شركة الإنجاز المعتمد للاستقدام</span>
+      </div>
+    </div>
+   </div>
+  </main>
+</div>
+
+<script>
+/* ====== LIVE TEXT BINDING ====== */
+document.querySelectorAll('[data-bind]').forEach(el=>{
+  el.addEventListener('input',()=>{
+    const out=document.getElementById('o-'+el.dataset.bind);
+    if(out) out.textContent=el.value;
+  });
+});
+
+/* ====== CHECKBOXES ====== */
+document.querySelectorAll('[data-check]').forEach(cb=>{
+  cb.addEventListener('change',()=>{
+    document.getElementById('ec-'+cb.dataset.check).classList.toggle('on',cb.checked);
+  });
+});
+
+/* ====== LANGUAGE RATING ====== */
+function bindLang(key){
+  const sel=document.querySelector('[data-lang="'+key+'"]');
+  const prefix = key==='arabic' ? 'ar' : 'en';
+  sel.addEventListener('change',()=>{
+    ['excellent','good','poor'].forEach(lvl=>{
+      document.getElementById(prefix+'-'+lvl).classList.toggle('on',sel.value===lvl);
+    });
+  });
+}
+bindLang('arabic');
+bindLang('english');
+
+/* ====== IMAGE UPLOADS ====== */
+function handleUpload(inputId,boxId,wrapId,asContain){
+  const input=document.getElementById(inputId);
+  const box=document.getElementById(boxId);
+  const wrap=document.getElementById(wrapId);
+  input.addEventListener('change',e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      box.innerHTML='<img src="'+ev.target.result+'">';
+      wrap.classList.add('has-file');
+      wrap.querySelector('p').textContent='✓ تم رفع الصورة';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+handleUpload('file-personal','photoBox','up-personal',false);
+handleUpload('file-passport','passportBox','up-passport',true);
+
+/* ====== RESPONSIVE FIT-TO-WIDTH ====== */
+/* Computes the exact scale so the A4 page fills the available width on any
+   device without horizontal scrolling, while keeping real mm size for PDF. */
+const A4_PX = 210 * 96 / 25.4; // 210mm in CSS px ≈ 793.7
+function fitPage(){
+  if(window.innerWidth > 1100){
+    document.documentElement.style.setProperty('--scale','1');
+    return;
+  }
+  const wrap=document.querySelector('.a4-wrap');
+  const avail=wrap.clientWidth;
+  let scale=avail/A4_PX;
+  if(scale>1) scale=1;
+  document.documentElement.style.setProperty('--scale',scale.toFixed(4));
+}
+window.addEventListener('resize',fitPage);
+window.addEventListener('load',fitPage);
+fitPage();
+
+/* ====== PDF EXPORT ====== */
+document.getElementById('exportBtn').addEventListener('click',function(){
+  const btn=this;
+  const page=document.getElementById('cvPage');
+  const original=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML='جارٍ إنشاء الملف...';
+
+  // reset to full scale during capture so the PDF is always full A4 resolution
+  const prevScale=getComputedStyle(document.documentElement).getPropertyValue('--scale');
+  document.documentElement.style.setProperty('--scale','1');
+
+  const name=(document.querySelector('[data-bind="fullname"]').value||'CV').trim();
+
+  const opt={
+    margin:0,
+    filename:'CV - '+name+'.pdf',
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:3,useCORS:true,backgroundColor:'#ffffff',scrollY:0,windowWidth:794},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['avoid-all','css','legacy']}
+  };
+
+  html2pdf().set(opt).from(page).save().then(()=>{
+    document.documentElement.style.setProperty('--scale',prevScale);
+    fitPage();
+    btn.disabled=false;
+    btn.innerHTML=original;
+  }).catch(()=>{
+    document.documentElement.style.setProperty('--scale',prevScale);
+    fitPage();
+    btn.disabled=false;
+    btn.innerHTML=original;
+    alert('حدث خطأ أثناء التصدير، حاول مرة أخرى.');
+  });
+});
+</script>
+</body>
+</html>
