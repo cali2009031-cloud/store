@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+<title>مجموعة صدى البحار للخدمات اللوجستية | SADA AL BAHAR</title>
+<meta name="description" content="مجموعة صدى البحار للخدمات اللوجستية - حلول النقل البحري والجوي والبري والتخليص الجمركي بأعلى معايير الجودة منذ 2013." />
+
+<!-- Tajawal Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+/* ============================================================
+   CSS VARIABLES / DESIGN TOKENS
+   ============================================================ */
+:root{
+  --navy:#14599d;
+  --navy-dark:#0e3f70;
+  --navy-deep:#0a2d52;
+  --orange:#f58426;
+  --orange-light:#ff9d4d;
+  --bg:#f4f7f9;
+  --bg-soft:#eef3f7;
+  --white:#ffffff;
+  --ink:#1c2b3a;
+  --ink-soft:#5a6b7b;
+  --line:rgba(20,89,157,.10);
+
+  --radius:22px;
+  --radius-sm:16px;
+  --radius-lg:30px;
+
+  --shadow-soft:0 18px 50px -20px rgba(20,89,157,.28);
+  --shadow-card:0 24px 60px -28px rgba(14,63,112,.35);
+  --shadow-float:0 30px 70px -25px rgba(14,63,112,.45);
+
+  --grad-navy:linear-gradient(135deg,#14599d 0%,#0e3f70 100%);
+  --grad-orange:linear-gradient(135deg,#ff9d4d 0%,#f58426 60%,#e8731a 100%);
+  --grad-glass:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.55));
+
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-soft:cubic-bezier(.16,1,.3,1);
+
+  --header-h:76px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{
+  scroll-behavior:smooth;
+  -webkit-text-size-adjust:100%;
+}
+body{
+  font-family:'Tajawal',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.7;
+  overflow-x:hidden;
+  position:relative;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+/* prevent any element from causing horizontal scroll from ship motion */
+html,body{max-width:100%;}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+ul{list-style:none}
+section{position:relative;z-index:1}
+
+::selection{background:var(--orange);color:#fff}
+
+/* gentle scrollbar */
+::-webkit-scrollbar{width:11px}
+::-webkit-scrollbar-track{background:var(--bg-soft)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--navy),var(--navy-dark));border-radius:20px;border:3px solid var(--bg-soft)}
+
+.container{width:min(1180px,92%);margin-inline:auto}
+
+/* ============================================================
+   AMBIENT SEA BACKGROUND (fixed, behind everything)
+   ============================================================ */
+.sea-ambient{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(1200px 600px at 80% -5%, rgba(20,89,157,.07), transparent 60%),
+    radial-gradient(900px 500px at 10% 40%, rgba(245,132,38,.05), transparent 60%),
+    radial-gradient(1000px 800px at 90% 100%, rgba(20,89,157,.08), transparent 60%);
+}
+/* subtle moving wave lines */
+.sea-ambient::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    repeating-linear-gradient(115deg, transparent 0 38px, rgba(20,89,157,.018) 38px 39px);
+  opacity:.7;
+}
+
+/* ============================================================
+   SHIP ROUTE (SVG) + SHIP (DOM)  — scroll driven
+   ============================================================ */
+.route-svg{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  z-index:0;
+  pointer-events:none;
+  overflow:visible;
+}
+.route-svg .route-line{
+  fill:none;
+  stroke:rgba(20,89,157,.16);
+  stroke-width:.4;
+  stroke-dasharray:1.4 2.2;
+  stroke-linecap:round;
+}
+
+.ship{
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:0;            /* behind content cards (which are z-index:1), above body bg */
+  width:96px;
+  height:96px;
+  margin-left:-48px;
+  margin-top:-48px;
+  pointer-events:none;
+  will-change:transform;
+  filter:drop-shadow(0 22px 26px rgba(14,63,112,.30));
+  opacity:.92;
+}
+.ship-inner{
+  width:100%;
+  height:100%;
+  animation:bob 5.5s var(--ease-soft) infinite;
+  transform-origin:center;
+}
+.ship svg{width:100%;height:100%;display:block}
+/* soft water ripple under the ship */
+.ship-wake{
+  position:absolute;
+  left:50%;
+  top:62%;
+  width:120%;
+  height:46%;
+  transform:translateX(-50%);
+  background:radial-gradient(ellipse at center, rgba(20,89,157,.22), transparent 70%);
+  border-radius:50%;
+  filter:blur(4px);
+  animation:wake 5.5s var(--ease-soft) infinite;
+}
+@keyframes bob{
+  0%,100%{transform:translateY(-4px) rotate(-1.4deg)}
+  50%{transform:translateY(5px) rotate(1.4deg)}
+}
+@keyframes wake{
+  0%,100%{opacity:.5;transform:translateX(-50%) scale(.92)}
+  50%{opacity:.85;transform:translateX(-50%) scale(1.06)}
+}
+
+/* ============================================================
+   GLASS HEADER
+   ============================================================ */
+.header{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:1000;
+  height:var(--header-h);
+  display:flex;align-items:center;
+  transition:all .45s var(--ease);
+}
+.header-inner{
+  width:min(1180px,94%);
+  margin-inline:auto;
+  height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;
+  padding:0 16px;
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.55);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  backdrop-filter:blur(18px) saturate(160%);
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 10px 35px -18px rgba(14,63,112,.35);
+  transition:all .45s var(--ease);
+}
+.header.scrolled{height:68px}
+.header.scrolled .header-inner{
+  background:rgba(255,255,255,.82);
+  box-shadow:0 16px 45px -20px rgba(14,63,112,.45);
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand img{
+  height:50px;width:auto;
+  border-radius:12px;
+  box-shadow:0 6px 18px -8px rgba(14,63,112,.5);
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.brand-text b{font-size:15px;font-weight:800;color:var(--navy-dark);white-space:nowrap}
+.brand-text span{font-size:10.5px;color:var(--ink-soft);letter-spacing:.5px;white-space:nowrap}
+
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{
+  font-size:14px;font-weight:500;color:var(--ink-soft);
+  padding:8px 12px;border-radius:12px;transition:.3s var(--ease);
+}
+.nav-links a:hover{color:var(--navy);background:rgba(20,89,157,.07)}
+
+.header-cta{display:flex;align-items:center;gap:8px}
+.wa-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 16px;
+  border-radius:14px;
+  font-size:13.5px;font-weight:700;color:#fff;
+  white-space:nowrap;
+  position:relative;
+  transition:transform .3s var(--ease), box-shadow .3s var(--ease);
+  will-change:transform;
+}
+.wa-btn i{font-size:15px}
+.wa-btn.admin{background:var(--grad-navy);box-shadow:0 10px 24px -10px rgba(20,89,157,.7)}
+.wa-btn.contact{background:var(--grad-orange);box-shadow:0 10px 24px -10px rgba(245,132,38,.7)}
+.wa-btn:hover{box-shadow:0 16px 30px -10px rgba(14,63,112,.55)}
+
+.burger{display:none;font-size:22px;color:var(--navy);padding:6px}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  position:relative;
+  min-height:100svh;
+  display:flex;align-items:center;
+  padding:calc(var(--header-h) + 30px) 0 130px;
+  overflow:hidden;
+  z-index:2;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:-2;
+  background:url('https://images.unsplash.com/photo-1494412651409-8963ce7935a7?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
+  transform:scale(1.08);
+  will-change:transform;
+}
+.hero-overlay{
+  position:absolute;inset:0;z-index:-1;
+  background:
+    linear-gradient(110deg, rgba(10,45,82,.92) 0%, rgba(20,89,157,.78) 45%, rgba(14,63,112,.55) 100%);
+}
+.hero-overlay::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(900px 500px at 85% 20%, rgba(245,132,38,.22), transparent 60%);
+}
+.hero .container{position:relative;z-index:2;color:#fff}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:8px 16px;border-radius:50px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.25);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  font-size:13px;font-weight:500;margin-bottom:22px;
+}
+.hero-badge i{color:var(--orange-light)}
+.hero h1{
+  font-size:clamp(28px,5.4vw,56px);
+  font-weight:900;line-height:1.25;
+  letter-spacing:-.5px;
+  margin-bottom:20px;
+  max-width:16ch;
+  text-shadow:0 6px 30px rgba(0,0,0,.25);
+}
+.hero h1 .accent{
+  background:linear-gradient(120deg,#ffd9b0,var(--orange-light));
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p{
+  font-size:clamp(15px,2.1vw,19px);
+  font-weight:300;line-height:1.9;
+  max-width:54ch;color:rgba(255,255,255,.92);
+  margin-bottom:32px;
+}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.btn-primary,.btn-ghost{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:15px 28px;border-radius:16px;
+  font-size:15px;font-weight:700;
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease);
+  will-change:transform;
+}
+.btn-primary{background:var(--grad-orange);color:#fff;box-shadow:0 18px 40px -16px rgba(245,132,38,.8)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 26px 50px -16px rgba(245,132,38,.9)}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.btn-ghost:hover{background:rgba(255,255,255,.2);transform:translateY(-3px)}
+
+.hero-stats{
+  display:flex;flex-wrap:wrap;gap:30px 46px;margin-top:48px;
+}
+.hero-stats .stat{display:flex;flex-direction:column}
+.hero-stats .stat b{font-size:clamp(26px,4vw,40px);font-weight:900;color:#fff;line-height:1}
+.hero-stats .stat span{font-size:13px;color:rgba(255,255,255,.8);margin-top:6px}
+.hero-stats .stat b .plus{color:var(--orange-light)}
+
+/* curved divider */
+.hero-divider{
+  position:absolute;bottom:-1px;left:0;right:0;z-index:3;
+  line-height:0;pointer-events:none;
+}
+.hero-divider svg{width:100%;height:90px;display:block}
+.hero-divider path{fill:var(--bg)}
+
+/* ============================================================
+   TRACKING WIDGET (floating glass)
+   ============================================================ */
+.tracking-wrap{position:relative;z-index:20;margin-top:-72px}
+.tracking{
+  width:min(900px,92%);margin-inline:auto;
+  background:var(--grad-glass);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  backdrop-filter:blur(20px) saturate(160%);
+  border:1px solid rgba(255,255,255,.8);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-float);
+  padding:30px;
+}
+.tracking-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.tracking-head .ic{
+  width:52px;height:52px;flex:none;
+  display:grid;place-items:center;
+  border-radius:16px;background:var(--grad-navy);color:#fff;font-size:22px;
+  box-shadow:0 12px 26px -12px rgba(20,89,157,.8);
+}
+.tracking-head h3{font-size:20px;font-weight:800;color:var(--navy-dark)}
+.tracking-head p{font-size:13.5px;color:var(--ink-soft)}
+.tracking-form{display:flex;gap:12px;flex-wrap:wrap}
+.tracking-form .field{
+  flex:1 1 260px;position:relative;
+}
+.tracking-form .field i{
+  position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  color:var(--navy);opacity:.55;font-size:16px;
+}
+.tracking-form input{
+  width:100%;padding:16px 48px 16px 18px;
+  border-radius:16px;border:1.5px solid var(--line);
+  background:rgba(255,255,255,.85);
+  font-size:15px;font-family:inherit;color:var(--ink);
+  transition:.3s var(--ease);
+}
+.tracking-form input::placeholder{color:#9aa9b6}
+.tracking-form input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 4px rgba(20,89,157,.12)}
+.track-btn{
+  flex:none;padding:16px 30px;border-radius:16px;
+  background:var(--grad-orange);color:#fff;font-weight:800;font-size:15px;
+  display:inline-flex;align-items:center;gap:10px;
+  box-shadow:0 14px 30px -12px rgba(245,132,38,.8);
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease);
+}
+.track-btn:hover{transform:translateY(-3px);box-shadow:0 22px 40px -14px rgba(245,132,38,.9)}
+.track-btn:active{transform:translateY(0) scale(.98)}
+
+/* ============================================================
+   SECTION SHARED
+   ============================================================ */
+.section{padding:90px 0}
+.section-head{text-align:center;max-width:620px;margin:0 auto 54px}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;color:var(--orange);
+  letter-spacing:1px;text-transform:uppercase;
+  padding:6px 14px;border-radius:50px;
+  background:rgba(245,132,38,.1);margin-bottom:16px;
+}
+.section-head h2{
+  font-size:clamp(24px,4vw,38px);font-weight:900;
+  color:var(--navy-dark);line-height:1.3;letter-spacing:-.5px;
+}
+.section-head p{font-size:15.5px;color:var(--ink-soft);margin-top:14px}
+
+/* ============================================================
+   SERVICES GRID
+   ============================================================ */
+.services-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:18px;
+}
+.service-card{
+  background:rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:var(--radius);
+  padding:28px 22px;
+  box-shadow:var(--shadow-soft);
+  transition:transform .4s var(--ease), box-shadow .4s var(--ease);
+  position:relative;overflow:hidden;
+}
+.service-card::before{
+  content:"";position:absolute;top:0;right:0;width:100%;height:4px;
+  background:var(--grad-orange);transform:scaleX(0);transform-origin:right;
+  transition:transform .45s var(--ease);
+}
+.service-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-card)}
+.service-card:hover::before{transform:scaleX(1)}
+.service-ic{
+  width:62px;height:62px;border-radius:18px;
+  display:grid;place-items:center;font-size:26px;
+  color:var(--navy);margin-bottom:18px;
+  background:linear-gradient(135deg, rgba(20,89,157,.12), rgba(20,89,157,.04));
+  transition:.4s var(--ease);
+}
+.service-card:hover .service-ic{
+  background:var(--grad-navy);color:#fff;transform:rotate(-6deg) scale(1.05);
+  box-shadow:0 14px 28px -12px rgba(20,89,157,.8);
+}
+.service-card h3{font-size:17.5px;font-weight:800;color:var(--navy-dark);margin-bottom:8px}
+.service-card p{font-size:13.5px;color:var(--ink-soft);line-height:1.7}
+
+/* ============================================================
+   FEATURES (3D tilt cards)
+   ============================================================ */
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:26px}
+.feature-card{
+  border-radius:var(--radius-lg);
+  padding:38px 34px;
+  color:#fff;position:relative;overflow:hidden;
+  box-shadow:var(--shadow-card);
+  transform-style:preserve-3d;
+  transition:box-shadow .4s var(--ease);
+  will-change:transform;
+}
+.feature-card.vip{background:var(--grad-navy)}
+.feature-card.challenge{background:linear-gradient(135deg,#1c2b3a 0%,#0a2d52 100%)}
+.feature-card::after{
+  content:"";position:absolute;top:-40%;left:-10%;width:60%;height:80%;
+  background:radial-gradient(circle, rgba(245,132,38,.35), transparent 70%);
+  filter:blur(20px);pointer-events:none;
+}
+.feature-inner{transform:translateZ(40px);position:relative;z-index:2}
+.feature-card .f-ic{
+  width:64px;height:64px;border-radius:18px;
+  display:grid;place-items:center;font-size:27px;margin-bottom:20px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+  color:var(--orange-light);
+}
+.feature-card h3{font-size:22px;font-weight:900;margin-bottom:18px;letter-spacing:-.3px}
+.feature-list li{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:11px 0;border-bottom:1px solid rgba(255,255,255,.12);
+  font-size:14.5px;color:rgba(255,255,255,.92);font-weight:400;
+}
+.feature-list li:last-child{border-bottom:none}
+.feature-list li i{
+  color:var(--orange-light);font-size:16px;margin-top:4px;flex:none;
+}
+
+/* ============================================================
+   PARTNERS MARQUEE
+   ============================================================ */
+.partners{padding:64px 0;overflow:hidden}
+.marquee{
+  position:relative;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+}
+.marquee-track{
+  display:flex;width:max-content;gap:18px;
+  animation:scroll-x 38s linear infinite;
+}
+.marquee:hover .marquee-track{animation-play-state:paused}
+.partner-chip{
+  flex:none;display:flex;align-items:center;gap:12px;
+  padding:18px 30px;border-radius:var(--radius);
+  background:rgba(255,255,255,.9);
+  border:1px solid var(--line);
+  box-shadow:0 12px 30px -22px rgba(14,63,112,.5);
+  font-size:17px;font-weight:800;color:var(--navy-dark);
+  white-space:nowrap;
+}
+.partner-chip i{color:var(--orange);font-size:18px}
+@keyframes scroll-x{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+
+/* ============================================================
+   MAP
+   ============================================================ */
+.map-card{
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow-card);
+  border:6px solid #fff;
+  position:relative;
+}
+#map{height:450px;width:100%;background:var(--bg-soft)}
+.leaflet-container{font-family:'Tajawal',sans-serif !important}
+.map-pin{
+  width:38px;height:38px;border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg);
+  display:grid;place-items:center;
+  box-shadow:0 8px 18px -6px rgba(14,63,112,.7);
+  border:3px solid #fff;
+}
+.map-pin i{transform:rotate(45deg);color:#fff;font-size:14px}
+.pin-navy{background:var(--navy)}
+.pin-orange{background:var(--orange)}
+.loc-legend{
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:26px;
+}
+.loc-chip{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:10px 18px;border-radius:50px;
+  background:rgba(255,255,255,.9);border:1px solid var(--line);
+  font-size:13.5px;font-weight:600;color:var(--navy-dark);
+  box-shadow:0 10px 26px -20px rgba(14,63,112,.6);
+}
+.loc-chip i{color:var(--orange)}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer{
+  background:linear-gradient(180deg,var(--navy-dark),var(--navy-deep));
+  color:#fff;padding:70px 0 30px;position:relative;
+  margin-top:90px;
+  z-index:2;
+}
+.footer::before{
+  content:"";position:absolute;top:-1px;left:0;right:0;height:60px;
+  background:var(--bg);
+  -webkit-mask:radial-gradient(80px 60px at 50% 0,transparent 98%,#000) ;
+  mask:radial-gradient(60px 60px at 50% 0,transparent 70%,#000 72%);
+}
+.footer-top{
+  display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;
+  padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.12);
+}
+.footer-brand img{height:54px;border-radius:12px;margin-bottom:16px}
+.footer-brand p{font-size:14px;color:rgba(255,255,255,.72);max-width:38ch;line-height:1.9;font-weight:300}
+.footer-col h4{font-size:16px;font-weight:800;margin-bottom:18px;color:#fff}
+.footer-col a,.footer-col li{
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;color:rgba(255,255,255,.72);padding:7px 0;transition:.3s var(--ease);
+}
+.footer-col a:hover{color:var(--orange-light);transform:translateX(-4px)}
+.footer-col i{color:var(--orange-light);width:18px;text-align:center}
+.footer-bottom{
+  display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;
+  padding-top:26px;font-size:13px;color:rgba(255,255,255,.6);
+}
+.footer-bottom .socials{display:flex;gap:10px}
+.footer-bottom .socials a{
+  width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(255,255,255,.1);color:#fff;font-size:15px;transition:.3s var(--ease);
+}
+.footer-bottom .socials a:hover{background:var(--orange);transform:translateY(-3px)}
+
+/* ============================================================
+   FLOATING WHATSAPP FAB
+   ============================================================ */
+.fab{
+  position:fixed;bottom:24px;left:24px;z-index:1500;
+  width:60px;height:60px;border-radius:50%;
+  background:linear-gradient(135deg,#25d366,#128c4a);
+  display:grid;place-items:center;color:#fff;font-size:28px;
+  box-shadow:0 16px 40px -10px rgba(18,140,74,.7);
+  transition:transform .35s var(--ease);
+}
+.fab:hover{transform:scale(1.08)}
+.fab::before{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:inherit;z-index:-1;
+  animation:pulse 2.6s var(--ease-soft) infinite;
+}
+@keyframes pulse{
+  0%{transform:scale(1);opacity:.55}
+  70%{transform:scale(1.7);opacity:0}
+  100%{transform:scale(1.7);opacity:0}
+}
+
+/* ============================================================
+   REVEAL ANIMATIONS (GSAP sets initial state via JS fallback)
+   ============================================================ */
+.reveal{opacity:0;transform:translateY(40px)}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:880px){
+  :root{--header-h:70px}
+  .nav-links{display:none}
+  .brand-text{display:none}
+  .header-cta .wa-btn span{display:none}
+  .header-cta .wa-btn{padding:11px 13px}
+  .features-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr 1fr;gap:30px}
+  .footer-brand{grid-column:1 / -1}
+  .ship{width:74px;height:74px;margin-left:-37px;margin-top:-37px}
+  .hero-stats{gap:22px 34px}
+}
+@media (max-width:560px){
+  .section{padding:64px 0}
+  .tracking{padding:22px}
+  .track-btn{flex:1 1 100%;justify-content:center}
+  .footer-top{grid-template-columns:1fr}
+  .footer-bottom{justify-content:center;text-align:center}
+  .fab{width:54px;height:54px;font-size:25px;bottom:18px;left:18px}
+  .ship{width:62px;height:62px;margin-left:-31px;margin-top:-31px;opacity:.85}
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;scroll-behavior:auto !important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== AMBIENT BACKGROUND ===================== -->
+<div class="sea-ambient" aria-hidden="true"></div>
+
+<!-- ===================== SHIP ROUTE (SVG) ===================== -->
+<svg class="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+  <path id="routePath" class="route-line"
+        d="M 50 12
+           C 22 24, 78 34, 50 46
+           C 24 56, 80 64, 52 74
+           C 30 82, 64 88, 50 95" />
+</svg>
+
+<!-- ===================== SHIP (DOM, top-down, bow pointing +X) ===================== -->
+<div class="ship" id="ship" aria-hidden="true">
+  <div class="ship-wake"></div>
+  <div class="ship-inner">
+    <svg viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg">
+      <!-- hull (bow to the right) -->
+      <path d="M6 18 L86 12 C104 13 118 26 118 35 C118 44 104 57 86 58 L6 52 C2 50 2 20 6 18 Z"
+            fill="#14599d"/>
+      <path d="M6 18 L86 12 C104 13 118 26 118 35 L60 35 Z" fill="#1c6cba" opacity=".55"/>
+      <!-- deck -->
+      <rect x="14" y="22" width="78" height="26" rx="5" fill="#0e3f70"/>
+      <!-- containers -->
+      <rect x="20" y="25" width="14" height="9" rx="1.5" fill="#f58426"/>
+      <rect x="36" y="25" width="14" height="9" rx="1.5" fill="#ff9d4d"/>
+      <rect x="52" y="25" width="14" height="9" rx="1.5" fill="#e8731a"/>
+      <rect x="68" y="25" width="14" height="9" rx="1.5" fill="#f58426"/>
+      <rect x="20" y="37" width="14" height="9" rx="1.5" fill="#ff9d4d"/>
+      <rect x="36" y="37" width="14" height="9" rx="1.5" fill="#e8731a"/>
+      <rect x="52" y="37" width="14" height="9" rx="1.5" fill="#f58426"/>
+      <rect x="68" y="37" width="14" height="9" rx="1.5" fill="#ff9d4d"/>
+      <!-- bridge (stern, left) -->
+      <rect x="4" y="24" width="12" height="22" rx="3" fill="#f4f7f9"/>
+      <rect x="6" y="28" width="8" height="3" rx="1" fill="#14599d"/>
+      <rect x="6" y="33" width="8" height="3" rx="1" fill="#14599d"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===================== HEADER ===================== -->
+<header class="header" id="header">
+  <div class="header-inner">
+    <a href="#hero" class="brand">
+      <img src="https://i.ibb.co/v65wtP42/Screenshot.jpg" alt="شعار مجموعة صدى البحار" />
+      <span class="brand-text">
+        <b>مجموعة صدى البحار</b>
+        <span>SADA AL BAHAR · للخدمات اللوجستية</span>
+      </span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="#services">خدماتنا</a>
+      <a href="#features">المميزات</a>
+      <a href="#partners">شركاؤنا</a>
+      <a href="#map">فروعنا</a>
+    </nav>
+
+    <div class="header-cta">
+      <a class="wa-btn admin magnetic" href="https://wa.me/967733426045" target="_blank" rel="noopener">
+        <i class="fa-brands fa-whatsapp"></i><span>الإدارة</span>
+      </a>
+      <a class="wa-btn contact magnetic" href="https://wa.me/967771657775" target="_blank" rel="noopener">
+        <i class="fa-brands fa-whatsapp"></i><span>تواصل معنا</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="container">
+    <span class="hero-badge hero-anim"><i class="fa-solid fa-anchor"></i> خبرة تتجاوز 40 عاماً في عالم اللوجستيات</span>
+    <h1 class="hero-anim">مجموعة <span class="accent">صدى البحار</span> للخدمات اللوجستية</h1>
+    <p class="hero-anim">تأسسنا عام 2013 وتتمتع بخبرة فريق تصل إلى 40 عاماً. نقدّم حلول النقل البحري والبري والجوي للبضائع الجافة والمبردة بأعلى معايير الجودة، لنبحر بشحنتك بأمان نحو وجهتها.</p>
+    <div class="hero-actions hero-anim">
+      <a href="#services" class="btn-primary"><i class="fa-solid fa-compass"></i> اكتشف خدماتنا</a>
+      <a href="https://wa.me/967771657775" target="_blank" rel="noopener" class="btn-ghost"><i class="fa-brands fa-whatsapp"></i> تحدث معنا الآن</a>
+    </div>
+
+    <div class="hero-stats hero-anim">
+      <div class="stat"><b data-count="40"><span class="plus">+</span>40</b><span>عاماً من الخبرة</span></div>
+      <div class="stat"><b data-count="5"><span class="plus">+</span>5</b><span>دول وفروع نشطة</span></div>
+      <div class="stat"><b data-count="8"><span class="plus">+</span>8</b><span>خدمات لوجستية</span></div>
+      <div class="stat"><b>2013</b><span>عام التأسيس</span></div>
+    </div>
+  </div>
+
+  <div class="hero-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 90" preserveAspectRatio="none">
+      <path d="M0,40 C360,95 1080,0 1440,55 L1440,90 L0,90 Z"></path>
+    </svg>
+  </div>
+</section>
+
+<!-- ===================== TRACKING WIDGET ===================== -->
+<div class="tracking-wrap">
+  <div class="tracking reveal">
+    <div class="tracking-head">
+      <div class="ic"><i class="fa-solid fa-magnifying-glass-location"></i></div>
+      <div>
+        <h3>تتبع شحنتك لحظة بلحظة</h3>
+        <p>أدخل رقم الحاوية أو بوليصة الشحن لمعرفة موقع بضاعتك.</p>
+      </div>
+    </div>
+    <div class="tracking-form">
+      <div class="field">
+        <i class="fa-solid fa-box"></i>
+        <input type="text" id="trackInput" placeholder="أدخل رقم الحاوية أو بوليصة الشحن" />
+      </div>
+      <button class="track-btn" id="trackBtn"><i class="fa-solid fa-location-crosshairs"></i> تتبع الآن</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SERVICES ===================== -->
+<section class="section" id="services">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><i class="fa-solid fa-layer-group"></i> خدماتنا المتكاملة</span>
+      <h2>حلول لوجستية تبحر بأعمالك نحو العالمية</h2>
+      <p>نوفّر منظومة خدمات شاملة تغطي رحلة شحنتك من المصدر حتى التسليم النهائي بأعلى كفاءة.</p>
+    </div>
+
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-ship"></i></div>
+        <h3>الشحن البحري</h3>
+        <p>حلول شحن بحري للحاويات الكاملة والمجمّعة عبر أهم الموانئ الدولية.</p>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-plane-up"></i></div>
+        <h3>الشحن الجوي</h3>
+        <p>سرعة وأمان لشحناتك العاجلة بشبكة طيران تربط القارات في أقصر وقت.</p>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-truck-fast"></i></div>
+        <h3>الشحن البري</h3>
+        <p>أسطول نقل بري حديث ينقل بضائعك بين الدول والمدن بمرونة عالية.</p>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        <h3>التخليص الجمركي</h3>
+        <p>إنجاز كافة الإجراءات والمعاملات الجمركية بسرعة ودقة واحترافية تامة.</p>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-house-circle-check"></i></div>
+        <h3>الباب للباب</h3>
+        <p>خدمة متكاملة من باب المرسِل إلى باب المستلم دون أي عناء عليك.</p>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-snowflake"></i></div>
+        <h3>الحاويات المبردة</h3>
+        <p>نقل البضائع المبردة والمجمّدة ضمن سلسلة تبريد متواصلة وآمنة.</p>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-warehouse"></i></div>
+        <h3>التخزين والمستودعات</h3>
+        <p>مستودعات مجهّزة في الموانئ الرئيسية لتخزين بضائعك بأمان ومرونة.</p>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-ic"><i class="fa-solid fa-compass-drafting"></i></div>
+        <h3>الاستشارات الملاحية</h3>
+        <p>خبرة استشارية ملاحية تساعدك على اتخاذ القرار اللوجستي الأمثل.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><i class="fa-solid fa-medal"></i> لماذا صدى البحار؟</span>
+      <h2>نقاط قوة تصنع الفارق في رحلة شحنتك</h2>
+      <p>امتيازات حصرية وحلول استثنائية تتجاوز بها أصعب التحديات اللوجستية.</p>
+    </div>
+
+    <div class="features-grid">
+      <article class="feature-card vip tilt reveal">
+        <div class="feature-inner">
+          <div class="f-ic"><i class="fa-solid fa-crown"></i></div>
+          <h3>امتيازات وكلاء الشحن VIP</h3>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-circle-check"></i> تمديد فترة الشحن المجاني حتى 25 يوماً.</li>
+            <li><i class="fa-solid fa-circle-check"></i> تسريع الحجوزات وإنجازها خلال 7 أيام فقط.</li>
+            <li><i class="fa-solid fa-circle-check"></i> توفير مستودعات في جميع الموانئ الرئيسية.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="feature-card challenge tilt reveal">
+        <div class="feature-inner">
+          <div class="f-ic"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>تخطّي التحديات الصعبة</h3>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-circle-check"></i> معالجة التغيير المفاجئ في خطط الشحن بمرونة.</li>
+            <li><i class="fa-solid fa-circle-check"></i> حل إشكالات البائع والمشتري باحترافية وحياد.</li>
+            <li><i class="fa-solid fa-circle-check"></i> معالجة حالات تعطيل الحاويات بسرعة وكفاءة.</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PARTNERS MARQUEE ===================== -->
+<section class="partners" id="partners">
+  <div class="container">
+    <div class="section-head reveal" style="margin-bottom:38px">
+      <span class="eyebrow"><i class="fa-solid fa-handshake"></i> شركاء النجاح</span>
+      <h2>نفخر بثقة كبرى المؤسسات</h2>
+    </div>
+  </div>
+  <div class="marquee">
+    <div class="marquee-track" id="marqueeTrack">
+      <!-- set duplicated by JS for seamless loop -->
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MAP ===================== -->
+<section class="section" id="map">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><i class="fa-solid fa-location-dot"></i> شبكة فروعنا</span>
+      <h2>حاضرون أينما تتجه شحنتك</h2>
+      <p>ترسو رحلتنا هنا، حيث تمتد فروعنا عبر اليمن والخليج وتركيا لخدمتك عن قرب.</p>
+    </div>
+
+    <div class="map-card reveal">
+      <div id="map"></div>
+    </div>
+
+    <div class="loc-legend reveal">
+      <span class="loc-chip"><i class="fa-solid fa-building"></i> الإدارة: صنعاء - حدّة</span>
+      <span class="loc-chip"><i class="fa-solid fa-anchor"></i> فرع ميناء عدن: خورمكسر</span>
+      <span class="loc-chip"><i class="fa-solid fa-location-dot"></i> دبي</span>
+      <span class="loc-chip"><i class="fa-solid fa-location-dot"></i> عُمان</span>
+      <span class="loc-chip"><i class="fa-solid fa-location-dot"></i> تركيا</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="https://i.ibb.co/v65wtP42/Screenshot.jpg" alt="شعار مجموعة صدى البحار" />
+        <p>مجموعة صدى البحار للخدمات اللوجستية — شريكك الموثوق في النقل البحري والجوي والبري والتخليص الجمركي منذ عام 2013، نبحر بشحناتك نحو العالم بثقة وأمان.</p>
+      </div>
+      <div class="footer-col">
+        <h4>روابط سريعة</h4>
+        <a href="#services"><i class="fa-solid fa-angle-left"></i> خدماتنا</a>
+        <a href="#features"><i class="fa-solid fa-angle-left"></i> المميزات</a>
+        <a href="#partners"><i class="fa-solid fa-angle-left"></i> شركاؤنا</a>
+        <a href="#map"><i class="fa-solid fa-angle-left"></i> فروعنا</a>
+      </div>
+      <div class="footer-col">
+        <h4>تواصل معنا</h4>
+        <a href="mailto:info@scl-ye.com"><i class="fa-solid fa-envelope"></i> info@scl-ye.com</a>
+        <a href="https://wa.me/967733426045" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> الإدارة: 733426045</a>
+        <a href="https://wa.me/967771657775" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> تواصل: 771657775</a>
+        <span><i class="fa-solid fa-location-dot"></i> صنعاء - حدّة، اليمن</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 مجموعة صدى البحار للخدمات اللوجستية. جميع الحقوق محفوظة.</span>
+      <div class="socials">
+        <a href="https://wa.me/967733426045" target="_blank" rel="noopener" aria-label="واتساب"><i class="fa-brands fa-whatsapp"></i></a>
+        <a href="mailto:info@scl-ye.com" aria-label="البريد"><i class="fa-solid fa-envelope"></i></a>
+        <a href="#hero" aria-label="للأعلى"><i class="fa-solid fa-arrow-up"></i></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== FLOATING WHATSAPP FAB ===================== -->
+<a class="fab" href="https://wa.me/967733426045" target="_blank" rel="noopener" aria-label="تواصل عبر واتساب">
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ---------- 1. PARTNERS MARQUEE (build + duplicate for seamless loop) ---------- */
+  (function buildMarquee(){
+    var partners = [
+      {name:'MSF', icon:'fa-heart-pulse'},
+      {name:'DRC', icon:'fa-hands-holding-circle'},
+      {name:'OMV', icon:'fa-oil-well'},
+      {name:'صافر', icon:'fa-gas-pump'},
+      {name:'بترو مسيلة', icon:'fa-industry'},
+      {name:'رويان', icon:'fa-building'},
+      {name:'مصنع دومان', icon:'fa-gears'},
+      {name:'المتحدة للأدوية', icon:'fa-pills'}
+    ];
+    var track = document.getElementById('marqueeTrack');
+    var html = '';
+    partners.forEach(function(p){
+      html += '<div class="partner-chip"><i class="fa-solid '+p.icon+'"></i>'+p.name+'</div>';
+    });
+    // duplicate for seamless -50% loop
+    track.innerHTML = html + html;
+  })();
+
+  /* ---------- 2. STICKY HEADER STATE ---------- */
+  var header = document.getElementById('header');
+  function onScrollHeader(){
+    if (window.scrollY > 30) header.classList.add('scrolled');
+    else header.classList.remove('scrolled');
+  }
+  onScrollHeader();
+  window.addEventListener('scroll', onScrollHeader, {passive:true});
+
+  /* ---------- 3. TRACKING BUTTON ---------- */
+  var trackBtn = document.getElementById('trackBtn');
+  var trackInput = document.getElementById('trackInput');
+  trackBtn.addEventListener('click', function(){
+    var val = (trackInput.value || '').trim();
+    if (!val){
+      alert('الرجاء إدخال رقم الحاوية أو بوليصة الشحن أولاً.');
+      trackInput.focus();
+      return;
+    }
+    alert('جارٍ تتبّع الشحنة رقم: ' + val + '\nسيتواصل معك فريق صدى البحار بالتفاصيل قريباً.');
+  });
+  trackInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') trackBtn.click();
+  });
+
+  /* ---------- 4. LEAFLET MAP (soft / comfortable tiles) ---------- */
+  (function initMap(){
+    if (typeof L === 'undefined') return;
+    var map = L.map('map', {
+      scrollWheelZoom:false,
+      zoomControl:true,
+      attributionControl:true
+    }).setView([19.5, 50], 4);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution:'&copy; OpenStreetMap &copy; CARTO',
+      maxZoom:19,
+      subdomains:'abcd'
+    }).addTo(map);
+
+    function pin(cls, icon){
+      return L.divIcon({
+        className:'',
+        html:'<div class="map-pin '+cls+'"><i class="fa-solid '+icon+'"></i></div>',
+        iconSize:[38,38],
+        iconAnchor:[19,38],
+        popupAnchor:[0,-36]
+      });
+    }
+
+    var locations = [
+      {n:'الإدارة الرئيسية', d:'صنعاء - حدّة', lat:15.3247, lng:44.1910, cls:'pin-navy', ic:'fa-building'},
+      {n:'فرع ميناء عدن', d:'خورمكسر', lat:12.8200, lng:45.0290, cls:'pin-orange', ic:'fa-anchor'},
+      {n:'فرع دبي', d:'الإمارات', lat:25.2048, lng:55.2708, cls:'pin-navy', ic:'fa-location-dot'},
+      {n:'فرع عُمان', d:'مسقط', lat:23.5880, lng:58.3829, cls:'pin-navy', ic:'fa-location-dot'},
+      {n:'فرع تركيا', d:'إسطنبول', lat:41.0082, lng:28.9784, cls:'pin-orange', ic:'fa-location-dot'}
+    ];
+
+    locations.forEach(function(loc){
+      L.marker([loc.lat, loc.lng], {icon:pin(loc.cls, loc.ic)})
+        .addTo(map)
+        .bindPopup('<div style="text-align:right;font-family:Tajawal,sans-serif"><b style="color:#14599d">'+loc.n+'</b><br><span style="color:#5a6b7b;font-size:13px">'+loc.d+'</span></div>');
+    });
+
+    // fit to all markers nicely
+    var group = L.featureGroup(locations.map(function(l){return L.marker([l.lat,l.lng]);}));
+    map.fitBounds(group.getBounds().pad(0.25));
+  })();
+
+  /* ---------- 5. GSAP ANIMATIONS ---------- */
+  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'){
+    gsap.registerPlugin(ScrollTrigger);
+    if (typeof MotionPathPlugin !== 'undefined') gsap.registerPlugin(MotionPathPlugin);
+
+    /* 5a. Hero intro (staggered fade-up) */
+    gsap.set('.hero-anim', {opacity:0, y:42});
+    gsap.to('.hero-anim', {
+      opacity:1, y:0, duration:1.1, ease:'power3.out',
+      stagger:0.13, delay:0.25
+    });
+
+    /* 5b. Hero background parallax */
+    gsap.to('#heroBg', {
+      y:120, ease:'none',
+      scrollTrigger:{ trigger:'.hero', start:'top top', end:'bottom top', scrub:true }
+    });
+
+    /* 5c. Generic reveal-on-scroll (fade-up) */
+    gsap.utils.toArray('.reveal').forEach(function(el){
+      gsap.fromTo(el, {opacity:0, y:46}, {
+        opacity:1, y:0, duration:1, ease:'power3.out',
+        scrollTrigger:{ trigger:el, start:'top 86%' }
+      });
+    });
+
+    /* 5d. Services staggered reveal */
+    gsap.fromTo('.service-card',
+      {opacity:0, y:50, scale:.96},
+      {
+        opacity:1, y:0, scale:1, duration:.8, ease:'power3.out', stagger:0.09,
+        scrollTrigger:{ trigger:'.services-grid', start:'top 82%' }
+      }
+    );
+
+    /* 5e. SHIP scroll-driven journey along the winding MotionPath */
+    if (typeof MotionPathPlugin !== 'undefined'){
+      gsap.to('#ship', {
+        scrollTrigger:{
+          trigger: document.body,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 1.6                 // soft, smooth lag => calm sailing
+        },
+        immediateRender:true,
+        ease:'none',
+        motionPath:{
+          path:'#routePath',
+          align:'#routePath',
+          alignOrigin:[0.5,0.5],
+          autoRotate:true            // bow (+X) follows direction of travel
+        }
+      });
+    }
+
+    ScrollTrigger.refresh();
+  } else {
+    // graceful fallback: show everything
+    document.querySelectorAll('.reveal,.hero-anim').forEach(function(el){
+      el.style.opacity=1; el.style.transform='none';
+    });
+  }
+
+  /* ---------- 6. MAGNETIC BUTTONS (desktop only) ---------- */
+  var canHover = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  if (canHover){
+    document.querySelectorAll('.magnetic').forEach(function(btn){
+      btn.addEventListener('mousemove', function(e){
+        var r = btn.getBoundingClientRect();
+        var x = e.clientX - r.left - r.width/2;
+        var y = e.clientY - r.top - r.height/2;
+        btn.style.transform = 'translate(' + (x*0.28) + 'px,' + (y*0.4) + 'px)';
+      });
+      btn.addEventListener('mouseleave', function(){
+        btn.style.transform = 'translate(0,0)';
+      });
+    });
+
+    /* ---------- 7. 3D TILT FEATURE CARDS ---------- */
+    document.querySelectorAll('.tilt').forEach(function(card){
+      card.addEventListener('mousemove', function(e){
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width;
+        var py = (e.clientY - r.top) / r.height;
+        var rx = (py - 0.5) * -10;   // rotateX
+        var ry = (px - 0.5) * 12;    // rotateY
+        card.style.transform = 'perspective(900px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) translateY(-6px)';
+      });
+      card.addEventListener('mouseleave', function(){
+        card.style.transform = 'perspective(900px) rotateX(0) rotateY(0) translateY(0)';
+      });
+    });
+  }
+
+  /* ---------- 8. SMOOTH ANCHOR SCROLL (offset for header) ---------- */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var id = a.getAttribute('href');
+      if (id.length < 2) return;
+      var target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      var top = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({top:top, behavior:'smooth'});
+    });
+  });
+
+});
+</script>
+</body>
+</html>
